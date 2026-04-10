@@ -1,9 +1,36 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { authMiddleware, supabase } from '../../lib/auth'
-import { calcPolitica } from '../../lib/politica'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+)
+
+function calcPolitica(ocupacao: string): string {
+  const map: Record<string, string> = {
+    APRENDIZ: 'NAO', ESTAGIARIO: 'NAO', AUXILIAR: 'NAO',
+    ASSISTENTE: 'PODE SER', ANALISTA: 'PODE SER', CONSULTOR: 'PODE SER',
+    COORDENADOR: 'PODE SER', SUPERVISOR: 'PODE SER',
+    GERENTE: 'TEM', DIRETOR: 'TEM', DIRETORA: 'TEM',
+    PRESIDENTE: 'TEM', CEO: 'TEM', 'C-LEVEL': 'TEM',
+  }
+  return map[ocupacao?.toUpperCase()?.trim()] || ''
+}
+
+async function auth(req: NextApiRequest, res: NextApiResponse): Promise<boolean> {
+  const token = req.headers.authorization?.replace('Bearer ', '')
+  if (!token) { res.status(401).json({ error: 'Não autorizado' }); return false }
+  try {
+    const decoded = Buffer.from(token, 'base64').toString('utf-8')
+    const [userId] = decoded.split(':')
+    const { data } = await supabase.from('usuarios').select('id').eq('id', parseInt(userId)).single()
+    if (!data) { res.status(401).json({ error: 'Sessão inválida' }); return false }
+    return true
+  } catch { res.status(401).json({ error: 'Token inválido' }); return false }
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const ok = await authMiddleware(req, res)
+  const ok = await auth(req, res)
   if (!ok) return
 
   if (req.method === 'GET') {
