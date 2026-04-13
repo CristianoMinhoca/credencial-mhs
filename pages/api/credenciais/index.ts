@@ -9,7 +9,7 @@ const supabase = createClient(
 function calcPolitica(ocupacao: string): string {
   const map: Record<string, string> = {
     APRENDIZ: 'NAO', ESTAGIARIO: 'NAO', AUXILIAR: 'NAO',
-    ASSISTENTE: 'PODE SER', ANALISTA: 'PODE SER', CONSULTOR: 'PODE SER', FAMILIA: 'PODE SER'
+    ASSISTENTE: 'PODE SER', ANALISTA: 'PODE SER', CONSULTOR: 'PODE SER', FAMILIA: 'PODE SER',
     COORDENADOR: 'PODE SER', SUPERVISOR: 'PODE SER',
     GERENTE: 'TEM', DIRETOR: 'TEM', DIRETORA: 'TEM',
     PRESIDENTE: 'TEM', CEO: 'TEM', 'C-LEVEL': 'TEM',
