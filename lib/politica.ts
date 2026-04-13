@@ -1,4 +1,3 @@
-// Atualizado com FAMILIA
 export const POLITICA_MAP: Record<string, string> = {
   APRENDIZ: 'NAO', ESTAGIARIO: 'NAO', AUXILIAR: 'NAO',
   ASSISTENTE: 'PODE SER', ANALISTA: 'PODE SER', CONSULTOR: 'PODE SER',
