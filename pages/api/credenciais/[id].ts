@@ -8,11 +8,7 @@ const supabase = createClient(
 
 function calcPolitica(ocupacao: string): string {
   const map: Record<string, string> = {
-    APRENDIZ: 'NAO', ESTAGIARIO: 'NAO', AUXILIAR: 'NAO',
-    ASSISTENTE: 'PODE SER', ANALISTA: 'PODE SER', CONSULTOR: 'PODE SER',
-    COORDENADOR: 'PODE SER', SUPERVISOR: 'PODE SER', FAMILIA: 'PODE SER'
-    GERENTE: 'TEM', DIRETOR: 'TEM', DIRETORA: 'TEM',
-    PRESIDENTE: 'TEM', CEO: 'TEM', 'C-LEVEL': 'TEM',
+    APRENDIZ:'NAO',ESTAGIARIO:'NAO',AUXILIAR:'NAO',ASSISTENTE:'PODE SER',ANALISTA:'PODE SER',CONSULTOR:'PODE SER',COORDENADOR:'PODE SER',SUPERVISOR:'PODE SER',FAMILIA:'PODE SER',GERENTE:'TEM',DIRETOR:'TEM',DIRETORA:'TEM',PRESIDENTE:'TEM',CEO:'TEM','C-LEVEL':'TEM',
   }
   return map[ocupacao?.toUpperCase()?.trim()] || ''
 }
@@ -20,7 +16,6 @@ function calcPolitica(ocupacao: string): string {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const token = req.headers.authorization?.replace('Bearer ', '')
   if (!token) return res.status(401).json({ error: 'Não autorizado' })
-
   const id = parseInt(req.query.id as string)
 
   if (req.method === 'PUT') {
