@@ -1,9 +1,11 @@
-export const POLITICA_MAP: Record<string, string> = {
-  APRENDIZ: 'NAO', ESTAGIARIO: 'NAO', AUXILIAR: 'NAO',
-  ASSISTENTE: 'PODE SER', ANALISTA: 'PODE SER', CONSULTOR: 'PODE SER',
-  COORDENADOR: 'PODE SER', SUPERVISOR: 'PODE SER', FAMILIA: 'PODE SER',
-  GERENTE: 'TEM', DIRETOR: 'TEM', DIRETORA: 'TEM',
-  PRESIDENTE: 'TEM', CEO: 'TEM', 'C-LEVEL': 'TEM',
+function calcPolitica(ocupacao: string): string {
+  const map: Record<string, string> = {
+    APRENDIZ: 'NAO', ESTAGIARIO: 'NAO', AUXILIAR: 'NAO',
+    ASSISTENTE: 'PODE SER', ANALISTA: 'PODE SER', CONSULTOR: 'PODE SER',
+    COORDENADOR: 'PODE SER', SUPERVISOR: 'PODE SER', FAMILIA: 'PODE SER',
+    GERENTE: 'TEM', DIRETOR: 'TEM', DIRETORA: 'TEM',
+    PRESIDENTE: 'TEM', CEO: 'TEM', 'C-LEVEL': 'TEM',
+  }
 }
 
 export function calcPolitica(ocupacao: string): string {
