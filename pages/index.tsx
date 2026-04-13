@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { calcPolitica, OCUPACOES, EMPRESAS, ABRANGENCIAS } from '../lib/politica'
 
@@ -25,7 +25,6 @@ type Credencial = {
 }
 
 const NIVEL_COLS = ['secao','setor','departamento','area','divisao','unidade','nucleo','grupo'] as const
-const NIVEL_LABELS = ['Seção','Setor','Depto','Área','Divisão','Unidade','Núcleo','Grupo']
 
 function polColor(pol: string) {
   if (pol === 'TEM') return 'bg-green-100 text-green-800'
@@ -38,6 +37,31 @@ const EMPTY: Credencial = {
   crede:'', usuario:'', ocupacao:'', especificacao:'', empresa:'',
   abrangencia:'', placa:'', credencial_fisica:'', politica:'',
   secao:'', setor:'', departamento:'', area:'', divisao:'', unidade:'', nucleo:'', grupo:'', reserva:'NAO'
+}
+
+function exportToExcel(data: Credencial[]) {
+  const headers = [
+    'Credencial','Nome','Cargo','Especificação','Empresa','Abrangência',
+    'Placa(s)','Credencial Física','Política','Seção','Setor','Departamento',
+    'Área','Divisão','Unidade','Núcleo','Grupo','Status'
+  ]
+  const rows = data.map(r => [
+    r.crede, r.usuario, r.ocupacao, r.especificacao, r.empresa, r.abrangencia,
+    r.placa, r.credencial_fisica, r.politica, r.secao, r.setor, r.departamento,
+    r.area, r.divisao, r.unidade, r.nucleo, r.grupo,
+    r.reserva === 'SIM' ? 'RESERVA' : 'EM USO'
+  ])
+  const bom = '\uFEFF'
+  const csv = bom + [headers, ...rows]
+    .map(row => row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(';'))
+    .join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `credenciais-mhs-${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
 }
 
 export default function Home() {
@@ -140,7 +164,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -160,8 +183,7 @@ export default function Home() {
       </header>
 
       <div className="max-w-screen-xl mx-auto px-6 py-6">
-        {/* Stats */}
-        <div className="flex gap-3 mb-5">
+        <div className="flex gap-3 mb-5 flex-wrap">
           {[
             { label: 'Total', val: credenciais.length, color: 'bg-blue-50 text-blue-700' },
             { label: 'Em uso', val: emUso, color: 'bg-green-50 text-green-700' },
@@ -172,22 +194,32 @@ export default function Home() {
               <span className="text-xs">{s.label}</span>
             </div>
           ))}
-          <button onClick={openNew} className="ml-auto bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
-            + Nova credencial
-          </button>
+          <div className="ml-auto flex gap-2">
+            <button
+              onClick={() => exportToExcel(filtered)}
+              className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center gap-2"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Exportar Excel
+            </button>
+            <button onClick={openNew} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+              + Nova credencial
+            </button>
+          </div>
         </div>
 
-        {/* Filtros */}
         <div className="bg-white rounded-xl border border-gray-200 p-3 mb-4 flex gap-2 flex-wrap">
           <input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Buscar nome, credencial, empresa, placa..."
             className="flex-1 min-w-48 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
           <select value={filtroEmpresa} onChange={e=>setFiltroEmpresa(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none">
             <option value="">Todas empresas</option>
-            {[...new Set(credenciais.map(r=>r.empresa).filter(Boolean))].sort().map(e=><option key={e}>{e}</option>)}
+            {Array.from(new Set(credenciais.map(r=>r.empresa).filter(Boolean))).sort().map(e=><option key={e}>{e}</option>)}
           </select>
           <select value={filtroCargo} onChange={e=>setFiltroCargo(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none">
             <option value="">Todos cargos</option>
-            {[...new Set(credenciais.map(r=>r.ocupacao).filter(Boolean))].sort().map(c=><option key={c}>{c}</option>)}
+            {Array.from(new Set(credenciais.map(r=>r.ocupacao).filter(Boolean))).sort().map(c=><option key={c}>{c}</option>)}
           </select>
           <select value={filtroPol} onChange={e=>setFiltroPol(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none">
             <option value="">Toda política</option>
@@ -197,7 +229,6 @@ export default function Home() {
           </select>
         </div>
 
-        {/* Tabela */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           {loading ? (
             <div className="text-center py-16 text-gray-400 text-sm">Carregando...</div>
@@ -221,7 +252,7 @@ export default function Home() {
                       <td className="px-4 py-3 max-w-[200px]">
                         {r.reserva === 'SIM'
                           ? <span className="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-md">RESERVA</span>
-                          : <span className="truncate block">{r.usuario || <span className="text-gray-300">—</span>}</span>}
+                          : <span className="truncate block">{r.usuario || '—'}</span>}
                       </td>
                       <td className="px-4 py-3 text-gray-700">{r.ocupacao || '—'}</td>
                       <td className="px-4 py-3 text-gray-500 max-w-[160px] truncate">{r.especificacao || '—'}</td>
@@ -248,7 +279,6 @@ export default function Home() {
         <p className="text-xs text-gray-400 mt-2">{filtered.length} de {credenciais.length} credenciais</p>
       </div>
 
-      {/* Modal */}
       {modal && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl border border-gray-200 w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-xl">
@@ -270,13 +300,11 @@ export default function Home() {
                   </select>
                 </div>
               </div>
-
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Nome completo</label>
                 <input value={form.usuario} onChange={e=>handleFormChange('usuario',e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nome do colaborador"/>
               </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-gray-600 block mb-1">Cargo / Ocupação</label>
@@ -291,7 +319,6 @@ export default function Home() {
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: ATENDIMENTO"/>
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-gray-600 block mb-1">Empresa</label>
@@ -308,7 +335,6 @@ export default function Home() {
                   </select>
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-gray-600 block mb-1">Placa(s)</label>
@@ -322,17 +348,13 @@ export default function Home() {
                   </select>
                 </div>
               </div>
-
-              {/* Política preview */}
               {form.ocupacao && (
                 <div className={`rounded-lg px-4 py-3 text-sm font-medium ${polColor(form.politica)}`}>
                   Política automática: <strong>{form.politica || '—'}</strong>
-                  {form.politica && <span className="font-normal ml-1">— aplica a todos os níveis (seção, setor, depto, área, divisão, unidade, núcleo, grupo)</span>}
+                  {form.politica && <span className="font-normal ml-1">— aplica a todos os níveis</span>}
                 </div>
               )}
-
               {erro && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{erro}</p>}
-
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={()=>setModal(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancelar</button>
                 <button type="submit" disabled={saving} className="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg disabled:opacity-60 transition">
