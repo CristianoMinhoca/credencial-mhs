@@ -1,6 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { calcPolitica, OCUPACOES, EMPRESAS, ABRANGENCIAS } from '../lib/politica'
+function calcPolitica(ocupacao: string): string {
+  const map: Record<string, string> = {
+    APRENDIZ: 'NAO', ESTAGIARIO: 'NAO', AUXILIAR: 'NAO',
+    ASSISTENTE: 'PODE SER', ANALISTA: 'PODE SER', CONSULTOR: 'PODE SER',
+    COORDENADOR: 'PODE SER', SUPERVISOR: 'PODE SER', FAMILIA: 'PODE SER',
+    GERENTE: 'TEM', DIRETOR: 'TEM', DIRETORA: 'TEM',
+    PRESIDENTE: 'TEM', CEO: 'TEM', 'C-LEVEL': 'TEM',
+  }
+  return map[ocupacao?.toUpperCase()?.trim()] || ''
+}
+const OCUPACOES = ['APRENDIZ','ESTAGIARIO','AUXILIAR','ASSISTENTE','ANALISTA','CONSULTOR','COORDENADOR','SUPERVISOR','FAMILIA','GERENTE','DIRETOR','DIRETORA','PRESIDENTE','CEO','C-LEVEL','MOTORISTA','FOWA','SPORTFIVE -SALA 501','CEO DO CONSELHO']
+const EMPRESAS = ['CSC','PALLAS','4BTS','SEDE-MHS','NESTTRAVEL','TORCIDA BRASIL','SBT','SPORTFIVE','FOWA']
+const ABRANGENCIAS = ['SEÇÃO','SETOR','DEPARTAMENTO','ÁREA','DIVISÃO','UNIDADE','NUCLEO','GRUPO','GRUPO ÁGUIA','FOWA']
 
 type Credencial = {
   id?: number
