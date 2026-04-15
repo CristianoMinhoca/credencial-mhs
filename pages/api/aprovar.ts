@@ -37,7 +37,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (acao === 'aprovar') {
-    // Buscar primeira credencial RESERVA disponível
     const { data: reservas } = await supabase
       .from('credenciais')
       .select('*')
@@ -51,7 +50,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const reserva = reservas[0]
 
-    // Atualizar a credencial com os dados do solicitante
     await supabase.from('credenciais').update({
       usuario, ocupacao, especificacao, empresa, abrangencia,
       placa, credencial_fisica, politica,
@@ -61,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       reserva: 'NAO'
     }).eq('id', reserva.id)
 
-    // Enviar e-mail de confirmação ao solicitante
+    // E-mail para o solicitante
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.RESEND_API_KEY}` },
@@ -85,7 +83,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
     })
 
-    return res.send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px"><h2 style="color:#16a34a">✅ Solicitação aprovada!</h2><p>Credencial <strong>${reserva.crede}</strong> atribuída para <strong>${usuario}</strong></p><p>E-mail de confirmação enviado para ${email}</p></body></html>`)
+    // E-mail para o gestor (cristiano)
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.RESEND_API_KEY}` },
+      body: JSON.stringify({
+        from: 'Credencial MHS <onboarding@resend.dev>',
+        to: ['cristiano.uceda@grupoaguia.com.br'],
+        subject: `Credencial aprovada - ${usuario}`,
+        html: `
+          <p>Olá,</p>
+          <p>Tudo bem?</p>
+          <p>Por gentileza, cadastrar na credencial <strong>${reserva.crede}</strong> a placa do carro <strong>${placa || '—'}</strong> e vincular ao nome <strong>${usuario}</strong>.</p>
+          <br>
+          <p>Grato,</p>
+          <br>
+          <hr>
+          <p style="color:#666;font-size:12px">Detalhes completos:</p>
+          <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:13px">
+            <tr><td><strong>Credencial</strong></td><td>${reserva.crede}</td></tr>
+            <tr><td><strong>Nome</strong></td><td>${usuario}</td></tr>
+            <tr><td><strong>Cargo</strong></td><td>${ocupacao}</td></tr>
+            <tr><td><strong>Especificação</strong></td><td>${especificacao || '—'}</td></tr>
+            <tr><td><strong>Empresa</strong></td><td>${empresa}</td></tr>
+            <tr><td><strong>Abrangência</strong></td><td>${abrangencia || '—'}</td></tr>
+            <tr><td><strong>Placa(s)</strong></td><td>${placa || '—'}</td></tr>
+            <tr><td><strong>Credencial Física</strong></td><td>${credencial_fisica || '—'}</td></tr>
+            <tr><td><strong>Política</strong></td><td>${politica || '—'}</td></tr>
+          </table>
+          <p style="color:#666;font-size:12px;margin-top:20px">MHS 2025 — Sistema de Credenciais</p>
+        `
+      })
+    })
+
+    return res.send(`<html><body style="font-family:sans-serif;text-align:center;padding:60px"><h2 style="color:#16a34a">✅ Solicitação aprovada!</h2><p>Credencial <strong>${reserva.crede}</strong> atribuída para <strong>${usuario}</strong></p><p>E-mails de confirmação enviados.</p></body></html>`)
   }
 
   res.status(400).send('Ação inválida')
