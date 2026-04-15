@@ -15,11 +15,14 @@ export default function Solicitar() {
   const politica = POLITICA_MAP[form.ocupacao?.toUpperCase()?.trim()] || ''
   const credencial_fisica = form.veiculo === 'MOTO' ? 'SIM' : form.veiculo === 'CARRO' ? 'NÃO' : ''
 
-  function handleChange(field: string, value: string) { setForm(prev=>({...prev,[field]:value})) }
+  function handleChange(field: string, value: string) {
+    const upper = ['usuario','especificacao','placa','justificativa']
+    setForm(prev=>({...prev,[field]: upper.includes(field) ? value.toUpperCase() : value}))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.email||!form.usuario||!form.ocupacao||!form.empresa) { setErro('Preencha os campos obrigatórios: E-mail, Nome, Cargo e Empresa.'); return }
+    if (!form.email||!form.usuario||!form.ocupacao||!form.empresa) { setErro('Preencha os campos obrigatórios: E-mail do Gestor, Nome, Cargo e Empresa.'); return }
     setLoading(true); setErro('')
     try {
       const res = await fetch('/api/solicitar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form, credencial_fisica, politica})})
@@ -54,12 +57,12 @@ export default function Solicitar() {
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1">E-mail *</label>
-              <input type="email" value={form.email} onChange={e=>handleChange('email',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="seu@email.com"/>
+              <label className="text-xs font-medium text-gray-600 block mb-1">E-mail do Gestor *</label>
+              <input type="email" value={form.email} onChange={e=>handleChange('email',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="email.do.gestor@empresa.com"/>
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1">Nome completo *</label>
-              <input value={form.usuario} onChange={e=>handleChange('usuario',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Seu nome completo"/>
+              <label className="text-xs font-medium text-gray-600 block mb-1">Nome completo de quem vai utilizar a credencial *</label>
+              <input value={form.usuario} onChange={e=>handleChange('usuario',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="NOME COMPLETO"/>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -71,7 +74,7 @@ export default function Solicitar() {
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Especificação</label>
-                <input value={form.especificacao} onChange={e=>handleChange('especificacao',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: ATENDIMENTO"/>
+                <input value={form.especificacao} onChange={e=>handleChange('especificacao',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="EX: ATENDIMENTO"/>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -93,7 +96,7 @@ export default function Solicitar() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Placa(s)</label>
-                <input value={form.placa} onChange={e=>handleChange('placa',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: ABC-1234"/>
+                <input value={form.placa} onChange={e=>handleChange('placa',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="EX: ABC-1234"/>
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Tipo de veículo</label>
@@ -114,7 +117,7 @@ export default function Solicitar() {
 
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1">Justificativa</label>
-              <textarea value={form.justificativa} onChange={e=>handleChange('justificativa',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows={3} placeholder="Motivo da solicitação..."/>
+              <textarea value={form.justificativa} onChange={e=>handleChange('justificativa',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows={3} placeholder="MOTIVO DA SOLICITAÇÃO..."/>
             </div>
 
             {politica&&(
