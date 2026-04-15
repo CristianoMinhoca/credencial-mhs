@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       body: JSON.stringify({
         from: 'Credencial MHS <onboarding@resend.dev>',
-        to: ['cristiano.uceda@grupoaguia.com.br'],
+        to: ['cristiano.uceda@grupoaguia.com.br', 'luiza.lima@pallastur.com.br'],
         subject: `Nova solicitação de credencial - ${usuario}`,
         html: `
           <h2 style="color:#1e40af">Nova Solicitação de Credencial MHS 2025</h2>
