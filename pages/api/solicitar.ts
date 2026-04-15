@@ -1,0 +1,50 @@
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') return res.status(405).end()
+
+  const { usuario, ocupacao, especificacao, empresa, abrangencia, placa, credencial_fisica, justificativa, politica } = req.body
+
+  if (!usuario || !ocupacao || !empresa) {
+    return res.status(400).json({ error: 'Campos obrigatórios faltando' })
+  }
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: 'Credencial MHS <onboarding@resend.dev>',
+        to: ['cristiano.uceda@grupoaguia.com.br'],
+        subject: `Nova solicitação de credencial - ${usuario}`,
+        html: `
+          <h2>Nova Solicitação de Credencial MHS 2025</h2>
+          <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%">
+            <tr><td><strong>Nome</strong></td><td>${usuario}</td></tr>
+            <tr><td><strong>Cargo</strong></td><td>${ocupacao}</td></tr>
+            <tr><td><strong>Especificação</strong></td><td>${especificacao || '—'}</td></tr>
+            <tr><td><strong>Empresa</strong></td><td>${empresa}</td></tr>
+            <tr><td><strong>Abrangência</strong></td><td>${abrangencia || '—'}</td></tr>
+            <tr><td><strong>Placa(s)</strong></td><td>${placa || '—'}</td></tr>
+            <tr><td><strong>Credencial Física</strong></td><td>${credencial_fisica || '—'}</td></tr>
+            <tr><td><strong>Política</strong></td><td>${politica || '—'}</td></tr>
+            <tr><td><strong>Justificativa</strong></td><td>${justificativa || '—'}</td></tr>
+          </table>
+          <p style="margin-top:20px;color:#666">Acesse o sistema para cadastrar a credencial: <a href="https://credencial-mhs.vercel.app">credencial-mhs.vercel.app</a></p>
+        `
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      return res.status(500).json({ error: error.message })
+    }
+
+    return res.json({ ok: true })
+  } catch (error) {
+    return res.status(500).json({ error: 'Erro ao enviar e-mail' })
+  }
+}
