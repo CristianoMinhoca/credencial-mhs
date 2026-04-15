@@ -8,23 +8,27 @@ const EMPRESAS = ['CSC','PALLAS','4BTS','SEDE-MHS','NESTTRAVEL','TORCIDA BRASIL'
 const ABRANGENCIAS = ['SEÇÃO','SETOR','DEPARTAMENTO','ÁREA','DIVISÃO','UNIDADE','NUCLEO','GRUPO','GRUPO ÁGUIA','FOWA']
 
 export default function Solicitar() {
-  const [form, setForm] = useState({email:'',usuario:'',ocupacao:'',especificacao:'',empresa:'',abrangencia:'',placa:'',credencial_fisica:'',justificativa:''})
+  const [form, setForm] = useState({email:'',usuario:'',ocupacao:'',especificacao:'',empresa:'',abrangencia:'',placa:'',veiculo:'',justificativa:''})
   const [enviado, setEnviado] = useState(false)
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
   const politica = POLITICA_MAP[form.ocupacao?.toUpperCase()?.trim()] || ''
+  const credencial_fisica = form.veiculo === 'MOTO' ? 'SIM' : form.veiculo === 'CARRO' ? 'NÃO' : ''
+
   function handleChange(field: string, value: string) { setForm(prev=>({...prev,[field]:value})) }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.email||!form.usuario||!form.ocupacao||!form.empresa) { setErro('Preencha os campos obrigatórios: E-mail, Nome, Cargo e Empresa.'); return }
     setLoading(true); setErro('')
     try {
-      const res = await fetch('/api/solicitar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,politica})})
+      const res = await fetch('/api/solicitar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form, credencial_fisica, politica})})
       if (!res.ok) { setErro('Erro ao enviar. Tente novamente.'); return }
       setEnviado(true)
     } catch { setErro('Erro de conexão. Tente novamente.') }
     finally { setLoading(false) }
   }
+
   if (enviado) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl border border-gray-200 p-8 max-w-md w-full text-center shadow-sm">
@@ -36,6 +40,7 @@ export default function Solicitar() {
       </div>
     </div>
   )
+
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-xl mx-auto">
@@ -91,21 +96,33 @@ export default function Solicitar() {
                 <input value={form.placa} onChange={e=>handleChange('placa',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: ABC-1234"/>
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600 block mb-1">Credencial física</label>
-                <select value={form.credencial_fisica} onChange={e=>handleChange('credencial_fisica',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none">
-                  <option value="">—</option><option value="SIM">SIM</option><option value="NÃO">NÃO</option>
+                <label className="text-xs font-medium text-gray-600 block mb-1">Tipo de veículo</label>
+                <select value={form.veiculo} onChange={e=>handleChange('veiculo',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none">
+                  <option value="">Selecione...</option>
+                  <option value="CARRO">CARRO</option>
+                  <option value="MOTO">MOTO</option>
                 </select>
               </div>
             </div>
+
+            {form.veiculo && (
+              <div className="bg-blue-50 rounded-lg px-4 py-3 text-sm text-blue-800">
+                Credencial física: <strong>{credencial_fisica}</strong>
+                {form.veiculo === 'MOTO' ? ' — Moto recebe credencial física' : ' — Carro não recebe credencial física'}
+              </div>
+            )}
+
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1">Justificativa</label>
               <textarea value={form.justificativa} onChange={e=>handleChange('justificativa',e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows={3} placeholder="Motivo da solicitação..."/>
             </div>
+
             {politica&&(
               <div className={`rounded-lg px-4 py-3 text-sm font-medium ${politica==='TEM'?'bg-green-100 text-green-800':politica==='PODE SER'?'bg-amber-100 text-amber-800':'bg-red-100 text-red-800'}`}>
                 Política para este cargo: <strong>{politica}</strong>
               </div>
             )}
+
             {erro&&<p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{erro}</p>}
             <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg text-sm transition disabled:opacity-60">
               {loading?'Enviando...':'Enviar solicitação'}
