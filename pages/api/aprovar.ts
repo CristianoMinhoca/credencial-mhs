@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try { parsed = JSON.parse(decodeURIComponent(dados as string)) }
   catch { return res.status(400).send('Dados inválidos') }
 
-  const { email, usuario, ocupacao, especificacao, empresa, abrangencia, placa, credencial_fisica, politica, justificativa } = parsed
+  const { email, usuario, ocupacao, especificacao, empresa, abrangencia, placa, credencial_fisica, politica } = parsed
 
   if (acao === 'negar') {
     await fetch('https://api.resend.com/emails', {
@@ -83,13 +83,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
     })
 
-    // E-mail para o gestor (cristiano)
+    // E-mail para estacionamento
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.RESEND_API_KEY}` },
       body: JSON.stringify({
         from: 'Credencial MHS <onboarding@resend.dev>',
-        to: ['cristiano.uceda@grupoaguia.com.br'],
+        to: ['estacionamento@cemhs.com.br'],
         subject: `Credencial aprovada - ${usuario}`,
         html: `
           <p>Olá,</p>
