@@ -1,10 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-async function enviarEmail(to: string, subject: string, html: string, apiKey: string) {
-  return fetch('https://api.resend.com/emails', {
+async function enviarEmail(to: string, subject: string, html: string) {
+  return fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-    body: JSON.stringify({ from: 'Credencial MHS <onboarding@resend.dev>', to: [to], subject, html })
+    headers: {
+      'Content-Type': 'application/json',
+      'api-key': process.env.BREVO_API_KEY!,
+    },
+    body: JSON.stringify({
+      sender: { name: 'Credencial MHS', email: 'cristiano.uceda@grupoaguia.com.br' },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html
+    })
   })
 }
 
@@ -45,15 +53,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   `
 
   const subject = `Nova solicitação de credencial - ${usuario}`
-  const apiKey = process.env.RESEND_API_KEY!
 
   try {
-    // Envia para cristiano
-    await enviarEmail('cristiano.uceda@grupoaguia.com.br', subject, html, apiKey)
-    
-    // Tenta enviar para luiza (ignora erro se falhar)
-    try { await enviarEmail('luiza.lima@pallastur.com.br', subject, html, apiKey) } catch {}
-
+    await enviarEmail('cristiano.uceda@grupoaguia.com.br', subject, html)
+    try { await enviarEmail('luiza.lima@pallastur.com.br', subject, html) } catch {}
     return res.json({ ok: true })
   } catch (error) {
     return res.status(500).json({ error: 'Erro ao enviar e-mail' })
