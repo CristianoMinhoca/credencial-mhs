@@ -1,18 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import nodemailer from 'nodemailer'
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'cristiano.uceda@gmail.com',
+    pass: process.env.GMAIL_PASS,
+  },
+})
 
 async function enviarEmail(to: string, subject: string, html: string) {
-  return fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': process.env.BREVO_API_KEY!,
-    },
-    body: JSON.stringify({
-      sender: { name: 'Credencial MHS', email: 'a86bae001@smtp-brevo.com' },
-      to: [{ email: to }],
-      subject,
-      htmlContent: html
-    })
+  return transporter.sendMail({
+    from: '"Credencial MHS" <cristiano.uceda@gmail.com>',
+    to,
+    subject,
+    html,
   })
 }
 
