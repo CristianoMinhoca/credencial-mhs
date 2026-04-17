@@ -8,7 +8,7 @@ async function enviarEmail(to: string, subject: string, html: string) {
       'api-key': process.env.BREVO_API_KEY!,
     },
     body: JSON.stringify({
-      sender: { name: 'Credencial MHS', email: 'cristiano.uceda@grupoaguia.com.br' },
+      sender: { name: 'Credencial MHS', email: 'noreply@credencial-mhs.com' },
       to: [{ email: to }],
       subject,
       htmlContent: html
