@@ -1,24 +1,26 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import nodemailer from 'nodemailer'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_KEY!
 )
 
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'cristiano.uceda@gmail.com',
+    pass: process.env.GMAIL_PASS,
+  },
+})
+
 async function enviarEmail(to: string, subject: string, html: string) {
-  return fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': process.env.BREVO_API_KEY!,
-    },
-    body: JSON.stringify({
-     sender: { name: 'Credencial MHS', email: 'a86bae001@smtp-brevo.com' },
-      to: [{ email: to }],
-      subject,
-      htmlContent: html
-    })
+  return transporter.sendMail({
+    from: '"Credencial MHS" <cristiano.uceda@gmail.com>',
+    to,
+    subject,
+    html,
   })
 }
 
@@ -66,7 +68,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       reserva: 'NAO'
     }).eq('id', reserva.id)
 
-    // E-mail para o solicitante
     await enviarEmail(email, 'Solicitação de credencial aprovada! ✅', `
       <h2 style="color:#16a34a">Solicitação de Credencial Aprovada! ✅</h2>
       <p>Olá <strong>${usuario}</strong>,</p>
@@ -81,7 +82,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       <p style="color:#666;font-size:12px;margin-top:20px">MHS 2025 — Sistema de Credenciais</p>
     `)
 
-    // E-mail para estacionamento
     await enviarEmail('estacionamento@cemhs.com.br', `Credencial aprovada - ${usuario}`, `
       <p>Olá,</p>
       <p>Tudo bem?</p>
