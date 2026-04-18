@@ -57,8 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const subject = `Nova solicitação de credencial - ${usuario}`
 
   try {
-    await enviarEmail('cristiano.uceda@grupoaguia.com.br', subject, html)
-    try { await enviarEmail('luiza.lima@pallastur.com.br', subject, html) } catch {}
+    await enviarEmail('administrativo@grupoaguia.com.br', subject, html)
     return res.json({ ok: true })
   } catch (error) {
     return res.status(500).json({ error: 'Erro ao enviar e-mail' })
