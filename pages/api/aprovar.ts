@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 
 async function enviarEmail(to: string, subject: string, html: string) {
   return transporter.sendMail({
-    from: '"Credencial MHS" <cristiano.uceda@gmail.com>',
+    from: '"Credencial MHS" <administrativo@grupoaguia.com.br>',
     to,
     subject,
     html,
